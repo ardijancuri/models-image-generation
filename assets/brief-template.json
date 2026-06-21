@@ -1,0 +1,60 @@
+{
+  "product_id": "sku-dress-001",
+  "product_name": "Black satin midi dress",
+  "category": "womenswear dress",
+  "source_images": [],
+  "primary_reference": "",
+  "reference_roles": {
+    "primary": [],
+    "front": [],
+    "back": [],
+    "side": [],
+    "detail": [],
+    "texture": [],
+    "label": [],
+    "color": []
+  },
+  "garment_identity": {
+    "category": "dress",
+    "silhouette": "unknown silhouette",
+    "color": "unknown color",
+    "fabric": "unknown fabric",
+    "neckline": "unknown neckline",
+    "sleeves": "unknown sleeves",
+    "closures": "unknown closures",
+    "seams": "unknown seams",
+    "print_or_logo": "none visible",
+    "trim_or_hardware": "none visible",
+    "identity_landmarks": [],
+    "uncertainties": [
+      "replace this template with observations from the uploaded references"
+    ]
+  },
+  "must_preserve": [],
+  "shot_pack": [
+    "main-front-on-model",
+    "front-3q-on-model",
+    "back-on-model",
+    "side-on-model",
+    "detail-fabric",
+    "detail-feature"
+  ],
+  "aspect_ratio": "3:4",
+  "background": "seamless pure white studio background",
+  "model_direction": "adult generic model, visible natural ecommerce face allowed, neutral expression, do not preserve the reference model identity",
+  "avoid": [
+    "props",
+    "hanger",
+    "mannequin",
+    "extra accessories",
+    "new logo",
+    "watermark",
+    "text overlay",
+    "padding",
+    "white bars",
+    "border",
+    "letterboxing",
+    "smaller image centered on a larger white canvas"
+  ],
+  "output_dir": "outputs/fashion-studio/sku-dress-001"
+}

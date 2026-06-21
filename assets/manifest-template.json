@@ -1,0 +1,13 @@
+{
+  "product_id": "",
+  "product_name": "",
+  "brief_hash": "",
+  "source_images": [],
+  "generated_at": "",
+  "output_dir": "",
+  "entries": [],
+  "review_summary": {
+    "status": "warn_review",
+    "warnings": []
+  }
+}

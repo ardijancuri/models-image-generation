@@ -1,0 +1,6 @@
+__pycache__/
+*.py[cod]
+
+# Local generated product-image artifacts.
+briefs/
+outputs/
