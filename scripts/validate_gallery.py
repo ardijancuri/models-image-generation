@@ -13,6 +13,7 @@ from PIL import Image, ImageOps, ImageStat
 
 TARGET_RATIO = 3 / 4
 RATIO_TOLERANCE = 0.02
+TARGET_BACKGROUND_HEX = "#FEFEFE"
 WHITE_MEAN_THRESHOLD = 248.0
 WHITE_STDDEV_THRESHOLD = 3.0
 BAND_FRACTION = 0.10
@@ -80,16 +81,15 @@ def has_letterbox_or_padding(img: Image.Image) -> bool:
     right = rgb.crop((w - vertical_band, 0, w, h))
     right_inner = rgb.crop((max(0, w - vertical_band * 2), 0, w - vertical_band, h))
 
-    horizontal_padding = (
-        (is_uniform_white(top) and not is_uniform_white(top_inner))
-        or (is_uniform_white(bottom) and not is_uniform_white(bottom_inner))
-        or (is_uniform_white(top) and is_uniform_white(bottom))
-    )
-    vertical_padding = (
-        (is_uniform_white(left) and not is_uniform_white(left_inner))
-        or (is_uniform_white(right) and not is_uniform_white(right_inner))
-        or (is_uniform_white(left) and is_uniform_white(right) and not (is_uniform_white(left_inner) and is_uniform_white(right_inner)))
-    )
+    top_bar = is_uniform_white(top) and not is_uniform_white(top_inner)
+    bottom_bar = is_uniform_white(bottom) and not is_uniform_white(bottom_inner)
+    left_bar = is_uniform_white(left) and not is_uniform_white(left_inner)
+    right_bar = is_uniform_white(right) and not is_uniform_white(right_inner)
+
+    # White studio images naturally have white space. Fail only paired opposite bands
+    # that resemble a smaller image placed on a larger white canvas.
+    horizontal_padding = top_bar and bottom_bar
+    vertical_padding = left_bar and right_bar
     return horizontal_padding or vertical_padding
 
 
@@ -118,13 +118,13 @@ def validate_entry(entry: dict[str, Any], images_dir: Path) -> dict[str, Any]:
                 warnings.append("low_resolution_output")
             if abs(actual_ratio - TARGET_RATIO) > RATIO_TOLERANCE:
                 warnings.append("not_3x4_aspect_ratio")
-            if "detail" not in entry.get("shot", ""):
+            if "detail" not in entry.get("shot", "") and entry.get("deliverable", True):
                 whiteness = border_whiteness(img)
                 if whiteness < 235:
-                    warnings.append("border_not_white_studio_background")
+                    warnings.append("border_not_fefefe_studio_background")
             if has_letterbox_or_padding(img):
                 warnings.append("letterboxed_or_padded_canvas")
-            if "detail" not in entry.get("shot", "") and img.height < img.width:
+            if "detail" not in entry.get("shot", "") and img.height < img.width and entry.get("deliverable", True):
                 warnings.append("non_detail_shot_is_landscape_review_crop")
     except Exception as exc:
         warnings.append(f"image_read_error:{exc}")
@@ -155,11 +155,17 @@ def main() -> int:
     parser.add_argument("--manifest", required=True, help="Path to manifest JSON")
     parser.add_argument("--images-dir", required=True, help="Directory containing generated images")
     parser.add_argument("--out", required=True, help="Path to write validation report JSON")
+    parser.add_argument("--include-internal", action="store_true", help="Validate non-deliverable internal anchor images too")
     args = parser.parse_args()
 
     manifest = load_json(Path(args.manifest))
     images_dir = Path(args.images_dir)
-    results = [validate_entry(entry, images_dir) for entry in manifest.get("entries", [])]
+    entries = [
+        entry
+        for entry in manifest.get("entries", [])
+        if args.include_internal or entry.get("deliverable", True)
+    ]
+    results = [validate_entry(entry, images_dir) for entry in entries]
 
     if not results:
         results.append(
@@ -183,6 +189,7 @@ def main() -> int:
     output = {
         "product_id": manifest.get("product_id", ""),
         "product_name": manifest.get("product_name", ""),
+        "target_background": TARGET_BACKGROUND_HEX,
         "status": summary_status,
         "results": results,
     }

@@ -34,14 +34,17 @@
   "shot_pack": [
     "main-front-on-model",
     "front-3q-on-model",
-    "back-on-model",
-    "side-on-model",
     "detail-fabric",
     "detail-feature"
   ],
   "aspect_ratio": "3:4",
-  "background": "seamless pure white studio background",
-  "model_direction": "adult generic model, visible natural ecommerce face allowed, neutral expression, do not preserve the reference model identity",
+  "background": "seamless solid #FEFEFE studio background; background pixels must be #FEFEFE wherever no product, model, or natural contact shadow appears",
+  "model_direction": "adult ecommerce on-model product photography; no recognizable model face in any generated image",
+  "model_appearance": "adult ecommerce model body and hair may be visible only as product context; no eyes, nose, mouth, full face, facial profile, or recognizable identity",
+  "model_styling": "soft polished occasion styling and professionally styled hair that match the garment; no jewelry or accessories unless explicitly requested",
+  "model_consistency": "keep body proportions, hair color, hair length, hairstyle, and skin tone consistent where visible; do not create or use a face identity anchor",
+  "detail_fabric_focus": "optional product-specific instruction for the fabric detail crop",
+  "detail_feature_focus": "optional product-specific instruction for the feature detail crop",
   "avoid": [
     "props",
     "hanger",
@@ -54,7 +57,16 @@
     "white bars",
     "border",
     "letterboxing",
-    "smaller image centered on a larger white canvas"
+    "smaller image centered on a larger white canvas",
+    "visible model face",
+    "recognizable face",
+    "eyes",
+    "nose",
+    "mouth",
+    "full face",
+    "facial profile",
+    "portrait crop",
+    "face focus"
   ],
   "output_dir": "outputs/fashion-studio/sku-dress-001"
 }

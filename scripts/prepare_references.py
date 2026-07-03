@@ -17,11 +17,20 @@ except Exception:  # pragma: no cover - dependency guard
 
 
 IMAGE_EXTENSIONS = {".jpg", ".jpeg", ".png", ".webp", ".bmp", ".tif", ".tiff"}
+LEGACY_FACE_REFERENCE_ROLES = {"model_face", "face", "model-face"}
 
 
 def load_json(path: Path) -> dict[str, Any]:
     with path.open("r", encoding="utf-8") as handle:
         return json.load(handle)
+
+
+def normalize_list(value: Any) -> list[str]:
+    if value is None:
+        return []
+    if isinstance(value, list):
+        return [str(item) for item in value if str(item)]
+    return [str(value)]
 
 
 def source_path(item: Any) -> str:
@@ -41,6 +50,13 @@ def source_role(item: Any, brief: dict[str, Any], path_value: str) -> str:
     if path_value == brief.get("primary_reference"):
         return "primary"
     return "reference"
+
+
+def resolve_reference_path(raw_path: str, base_dir: Path) -> Path:
+    resolved = Path(raw_path)
+    if not resolved.is_absolute():
+        resolved = base_dir / resolved
+    return resolved
 
 
 def file_hash(path: Path) -> str:
@@ -90,6 +106,20 @@ def image_info(path: Path) -> dict[str, Any]:
     return info
 
 
+def legacy_face_reference_warnings(brief: dict[str, Any]) -> list[str]:
+    warnings = []
+    if normalize_list(brief.get("model_face_references")):
+        warnings.append("model_face_references_ignored_no_faces_policy")
+    roles = brief.get("reference_roles", {})
+    if isinstance(roles, dict) and any(normalize_list(roles.get(role)) for role in LEGACY_FACE_REFERENCE_ROLES):
+        warnings.append("model_face_reference_roles_ignored_no_faces_policy")
+    for item in brief.get("source_images", []):
+        if isinstance(item, dict) and str(item.get("role", "")).lower() in LEGACY_FACE_REFERENCE_ROLES:
+            warnings.append("model_face_source_images_ignored_no_faces_policy")
+            break
+    return sorted(set(warnings))
+
+
 def main() -> int:
     parser = argparse.ArgumentParser()
     parser.add_argument("--brief", required=True, help="Path to brief.json")
@@ -100,25 +130,30 @@ def main() -> int:
     brief = load_json(brief_path)
     base_dir = brief_path.parent
     entries = []
+    ignored_face_sources = []
 
     for item in brief.get("source_images", []):
         raw_path = source_path(item)
         if not raw_path:
             continue
-        resolved = Path(raw_path)
-        if not resolved.is_absolute():
-            resolved = base_dir / resolved
+        role = source_role(item, brief, raw_path)
+        if role.lower() in LEGACY_FACE_REFERENCE_ROLES:
+            ignored_face_sources.append(raw_path)
+            continue
+        resolved = resolve_reference_path(raw_path, base_dir)
         info = image_info(resolved)
         entries.append(
             {
                 "source": raw_path,
                 "resolved_path": str(resolved),
-                "role": source_role(item, brief, raw_path),
+                "role": role,
                 **info,
             }
         )
 
-    warnings = []
+    warnings = legacy_face_reference_warnings(brief)
+    if ignored_face_sources:
+        warnings.append("legacy_face_source_images_skipped")
     if not entries:
         warnings.append("no_source_images_listed")
     if brief.get("primary_reference") and not any(e["source"] == brief["primary_reference"] for e in entries):
@@ -131,7 +166,8 @@ def main() -> int:
         "product_name": brief.get("product_name", ""),
         "source_count": len(entries),
         "references": entries,
-        "warnings": warnings,
+        "ignored_face_sources": ignored_face_sources,
+        "warnings": sorted(set(warnings)),
     }
 
     out_path = Path(args.out)

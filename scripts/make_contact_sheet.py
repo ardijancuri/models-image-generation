@@ -81,7 +81,8 @@ def make_tile(entry: dict[str, Any], images_dir: Path, tile_w: int, tile_h: int)
         tile.paste(placeholder((tile_w - 24, image_h - 24), "Missing generated image"), (12, 12))
 
     status = entry.get("review_status", "pending_review")
-    title = f"{entry.get('prompt_id', '')} {entry.get('shot', '')}".strip()
+    marker = "internal " if not entry.get("deliverable", True) else ""
+    title = f"{marker}{entry.get('prompt_id', '')} {entry.get('shot', '')}".strip()
     warnings = ", ".join(entry.get("qa_warnings", [])[:2])
     draw.text((12, image_h + 10), title[:58], fill="#111827", font=ImageFont.load_default())
     draw.text((12, image_h + 30), f"status: {status}", fill="#374151", font=ImageFont.load_default())
@@ -96,10 +97,15 @@ def main() -> int:
     parser.add_argument("--images-dir", required=True, help="Directory containing generated images")
     parser.add_argument("--out", required=True, help="Path to write contact sheet PNG")
     parser.add_argument("--columns", type=int, default=3, help="Number of columns")
+    parser.add_argument("--include-internal", action="store_true", help="Include non-deliverable internal anchor images")
     args = parser.parse_args()
 
     manifest = load_json(Path(args.manifest))
-    entries = manifest.get("entries", [])
+    entries = [
+        entry
+        for entry in manifest.get("entries", [])
+        if args.include_internal or entry.get("deliverable", True)
+    ]
     if not entries:
         entries = [{"prompt_id": "empty", "shot": "no entries", "review_status": "warn_review", "qa_warnings": ["manifest_has_no_entries"]}]
 

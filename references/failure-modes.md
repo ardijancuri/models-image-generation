@@ -20,7 +20,7 @@ Fashion product generation is identity-sensitive. Bias toward review when the mo
 - Named print/logo landmarks get replaced by generic decoration.
 - Back/side views hallucinate details that were never shown.
 - Detail shots become generic fabric instead of the actual garment.
-- White garments disappear into white backgrounds.
+- White garments disappear into `#FEFEFE` studio backgrounds.
 - Padded or letterboxed canvases create white top/bottom bands or side bars instead of native 3:4 composition.
 - Hands, bags, jewelry, shoes, props, or extra garments appear.
 
@@ -31,5 +31,5 @@ Fashion product generation is identity-sensitive. Bias toward review when the mo
 - Use targeted regeneration for one failure at a time.
 - Treat logo/text exactness as a manual review requirement.
 - For asymmetric prints, logo patches, and complex straps, add named `identity_landmarks` to the brief before generation.
-- For white garments, request visible edge separation through soft shadow and tonal contrast while keeping the background white.
+- For white garments, request visible edge separation through soft contact shadow and tonal contrast on the garment while keeping unused background areas exactly `#FEFEFE`.
 - For website-ready 3:4 images, regenerate padded or letterboxed outputs instead of fixing them with white padding.

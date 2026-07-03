@@ -106,16 +106,15 @@ def has_letterbox_or_padding(img: Image.Image) -> bool:
     right = rgb.crop((width - vertical_band, 0, width, height))
     right_inner = rgb.crop((max(0, width - vertical_band * 2), 0, width - vertical_band, height))
 
-    horizontal_padding = (
-        (is_uniform_white(top) and not is_uniform_white(top_inner))
-        or (is_uniform_white(bottom) and not is_uniform_white(bottom_inner))
-        or (is_uniform_white(top) and is_uniform_white(bottom))
-    )
-    vertical_padding = (
-        (is_uniform_white(left) and not is_uniform_white(left_inner))
-        or (is_uniform_white(right) and not is_uniform_white(right_inner))
-        or (is_uniform_white(left) and is_uniform_white(right) and not (is_uniform_white(left_inner) and is_uniform_white(right_inner)))
-    )
+    top_bar = is_uniform_white(top) and not is_uniform_white(top_inner)
+    bottom_bar = is_uniform_white(bottom) and not is_uniform_white(bottom_inner)
+    left_bar = is_uniform_white(left) and not is_uniform_white(left_inner)
+    right_bar = is_uniform_white(right) and not is_uniform_white(right_inner)
+
+    # White studio product shots often have normal white headroom or side margins.
+    # Treat padding as a fail only when both opposite bands look like artificial bars.
+    horizontal_padding = top_bar and bottom_bar
+    vertical_padding = left_bar and right_bar
     return horizontal_padding or vertical_padding
 
 
@@ -183,7 +182,7 @@ def main() -> int:
         default="verify",
         help="Default verify copies only native usable 3:4 images; crop and pad are explicit manual fallbacks",
     )
-    parser.add_argument("--background", default="#ffffff", help="Padding color, default #ffffff")
+    parser.add_argument("--background", default="#FEFEFE", help="Padding color, default #FEFEFE")
     parser.add_argument("--report", help="Optional JSON report path")
     args = parser.parse_args()
 

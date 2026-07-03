@@ -1,4 +1,4 @@
 interface:
   display_name: "Fashion Studio Images"
-  short_description: "Generate white-background fashion PDP image packs"
-  default_prompt: "Use $generate-fashion-studio-images to create a white-background on-model ecommerce image pack from these fashion product references."
+  short_description: "Generate no-face 4-shot fashion PDP packs"
+  default_prompt: "Use $generate-fashion-studio-images to create a no-face #FEFEFE-background 4-shot ecommerce image pack from these fashion product references, preserving garment identity and cropping out any recognizable model face."
